@@ -2,28 +2,21 @@
 ##  
 ##  Author:       Kevin Koh
 ##  Description:  Runs simulation on Model double loading
-##  Version:      1.0
-##  Todo:         Key in double loading
 ##
 ##----------------------------------------------------------------------------------
 
 library(MplusAutomation)
-
-######################################
-## Study 2: Double Loading          ##
-######################################
 
 # Create Monte Carlo template
 tmp <- 
 '[[init]]
 iterators = model;
 model = 1:5;
-corr#model = 0.5 0.6 0.7 0.8 0.9;
-filename = "Monte Carlo 4 traits SIMULATION double loading [[corr#model]].inp";
-outputDirectory = Data/[[corr#model]];
+filename = "Monte Carlo 4 traits SIMULATION misspecification [[model]].inp";
+outputDirectory = "Data/misspec/model [[model]]";
 [[/init]]
 
-TITLE: Generates 4 traits with double loading of [[corr#model]]
+TITLE: Generates 4 traits 
 Generates enough errors for 12 items with error=1 (e) and 12 items with error=0.5 (se)
 MONTECARLO: 
 
@@ -33,7 +26,7 @@ NOBSERVATIONS = 2000;
 NREPS = 100; 
 SEED = 2204;
 REPSAVE=ALL;
-SAVE = 4TraitsHighCorr[[corr#model]]Rep*.dat;
+SAVE = 4Traitsmisspec[[model]]Rep*.dat;
 
 MODEL POPULATION:
 
@@ -42,7 +35,7 @@ trait1-trait4@1;
 
 !factors are uncorrelated with errors, and errors are uncorrelated with each other
 !factors are correlated 
-trait1 WITH trait2@[[corr#model]] trait3@0 trait4@.4;
+trait1 WITH trait2@-0.4 trait3@0 trait4@.4;
 trait2 WITH trait3@.3 trait4@-.3;
 trait3 WITH trait4@0;
 
@@ -51,23 +44,26 @@ e1-e12@1;
 se1-se12@0.5;'
 
 ## Write to file
-write(tmp, "highcorrtmplt.txt")
-createModels("highcorrtmplt.txt")
+write(tmp, "misspectmplt.txt")
+createModels("misspectmplt.txt")
 
 # Create analysis template
 tmp <- 
 '[[init]]
 iterators = model;
 model = 1:5;
-corr#model = 0.5 0.6 0.7 0.8 0.9;
-filename = "3Traits4Triplets high correlation [[corr#model]].inp";
-outputDirectory = Data/[[corr#model]];
+misspec1#model = 0 1 1 1 1;
+misspec2#model = 0 0 1 1 1;
+misspec3#model = 0 0 0 1 1;
+misspec4#model = 0 0 0 0 1;
+filename = "3Traits4Triplets misspecification [[model]].inp";
+outputDirectory = "Data/misspec/model [[model]]";
 [[/init]]
 
 
-TITLE: Model with 4 triplets measuring 3 traits at high correlation of [[corr#model]]
+TITLE: Model with 4 triplets measuring 3 traits with [[model]] misspecification
 DATA:   !FILE IS 4TraitsRep5.dat;
-FILE IS 4TraitsHighCorr[[corr#model]]Replist.dat; TYPE=MONTECARLO;
+FILE IS 4Traitsmisspec[[model]]Replist.dat; TYPE=MONTECARLO;
 
 VARIABLE:
 NAMES = trait1-trait4 e1-e12 se1-se12;
@@ -80,18 +76,18 @@ CATEGORICAL = i1i2-i11i12;
 
 DEFINE:
 
-i1i2=   -0.5+   (1)*trait1-     (0.8)*trait2+e1-e2;
-i1i3=   1.2+    (1)*trait1-     (1.3)*trait3+e1-e3;
-i2i3=   1.7+    (0.8)*trait2-   (1.3)*trait3+e2-e3;
-i4i5=   -0.7+   (-1.3)*trait1-  (1)*trait2+e4-e5;
-i4i6=   -1+     (-1.3)*trait1-  (0.8)*trait3+e4-e6;
-i5i6=   -0.3+   (1)*trait2-     (0.8)*trait3+e5-e6;
-i7i8=   0.7+    (0.8)*trait1-   (1.3)*trait2+e7-e8;
-i7i9=   1.2+    (0.8)*trait1-   (-1)*trait3+e7-e9;
-i8i9=   0.5+    (1.3)*trait2-   (-1)*trait3+e8-e9;
-i10i11= -0.7+   (1.3)*trait1-   (-0.8)*trait2+e10-e11;
-i10i12= -1.2+   (1.3)*trait1-   (1)*trait3+e10-e12;
-i11i12= -0.5+   (-0.8)*trait2-  (1)*trait3+e11-e12;
+i1i2=   -0.5+   (1)*trait1-     (0.8)*trait2+   ([[misspec1#model]]*0.1)*trait3+     e1-e2;
+i1i3=   1.2+    (1)*trait1-     (1.3)*trait3+   ([[misspec1#model]]*0.1)*trait3+     e1-e3;
+i2i3=   1.7+    (0.8)*trait2-   (1.3)*trait3+                                        e2-e3;
+i4i5=   -0.7+   (-1.3)*trait1-  (1)*trait2+     ([[misspec2#model]]*0.1)*trait3+     e4-e5;
+i4i6=   -1+     (-1.3)*trait1-  (0.8)*trait3+   ([[misspec2#model]]*0.1)*trait3+     e4-e6;
+i5i6=   -0.3+   (1)*trait2-     (0.8)*trait3+                                        e5-e6;
+i7i8=   0.7+    (0.8)*trait1-   (1.3)*trait2+   ([[misspec3#model]]*0.1)*trait3+     e7-e8;
+i7i9=   1.2+    (0.8)*trait1-   (-1)*trait3+    ([[misspec3#model]]*0.1)*trait3+     e7-e9;
+i8i9=   0.5+    (1.3)*trait2-   (-1)*trait3+                                         e8-e9;
+i10i11= -0.7+   (1.3)*trait1-   (-0.8)*trait2+  ([[misspec4#model]]*0.1)*trait3+     e10-e11;
+i10i12= -1.2+   (1.3)*trait1-   (1)*trait3+     ([[misspec4#model]]*0.1)*trait3+     e10-e12;
+i11i12= -0.5+   (-0.8)*trait2-  (1)*trait3+                                          e11-e12;
 
 
 CUT i1i2-i11i12 (0);
@@ -202,21 +198,19 @@ OUTPUT: STDY;
 !SAVE=FSCORES;'
 
 # Write to file
-write(tmp, "highcorranatmplt.txt")
-createModels("highcorranatmplt.txt")
+write(tmp, "misspecanatmplt.txt")
+createModels("misspecanatmplt.txt")
 
 # Run data generation
-runModels(getwd(), recursive = TRUE, filefilter = "Monte Carlo 4 traits SIMULATION high correlation \\d\\.\\d\\.inp")
+runModels(getwd(), recursive = TRUE, filefilter = "Monte Carlo 4 traits SIMULATION misspecification \\d\\.inp")
 
 # Run analysis
-runModels(getwd(), recursive = TRUE, filefilter = "3Traits4Triplets high correlation \\d\\.\\d\\.inp")
+runModels(getwd(), recursive = TRUE, filefilter = "3Traits4Triplets misspecification \\d\\.inp")
 
-# Read output #last stopped here
+# Read output
 allOutput <-
-  readModels(getwd(), recursive = TRUE, filefilter = "3traits4triplets high correlation \\d\\.\\d")
-output5 <-
-  readModels("C:/Users/kevin/OneDrive/PL4401/My R scripts/Data/0.5",
-             filefilter = "3traits4triplets high correlation \\d\\.\\d")
+  readModels(getwd(), recursive = TRUE, filefilter = "3traits4triplets misspecification \\d")
+
 
 # Compile output into a table in parameters----
 # Select only the needed fit indexes
