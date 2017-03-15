@@ -2,12 +2,13 @@
 ##  
 ##  Author:       Kevin Koh
 ##  Description:  Runs simulation on non-normal factor
-##  Version:      1.0
-##  Todo:         Key in better skewness and kurtosis based on lit
 ##
 ##----------------------------------------------------------------------------------
 
+cond <- c(0, 0.4, 0.8, 1.6, 2) # skewness kurtosis values from (Blanca, Arnau, López-Montiel, Bono, Bendayan, 2013)
+
 library('simsem')
+
 path.BE <- matrix(0, 28, 28)
 BE <- bind(path.BE)
 
@@ -32,30 +33,33 @@ n1 <- list(mean = 0, sd = 1)
 n2 <- list(mean = 0, sd = 0.5)
 
 wd <- getwd()
-dir.create(file.path(wd, 'nnorm'), showWarnings = FALSE)
+dir.create(file.path(wd, 'Data', 'nnorm'),
+           showWarnings = FALSE,
+           recursive = TRUE)
 
-for(i in c(1, 2, 3)) {
-  cat('Monte Carlo data generated has started for model ', i, '.', sep = "")
-  skewness <- c(rep(0.3, i), rep(0, (28 - i))) # insert i here
-  kurtosis <- c(rep(0.3, i), rep(0, (28 - i))) # insert i here
+for (i in c(1:length(cond))) {
+  cat('Monte Carlo data generated has started for model ', i, '.\n', sep = "")
+  skewness <- c(rep(cond[i], 3), rep(0, (25))) # insert i here
+  kurtosis <- c(rep(cond[i], 3), rep(0, (25))) # insert i here
   facDist <-
     bindDist(skewness = skewness,
              kurtosis = kurtosis)
-  tmp.dir <- file.path(wd, 'nnorm', paste0("model ", i))
-  dir.create(tmp.dir, showWarnings = FALSE)
+  tmp.dir <- file.path(wd, 'Data', 'nnorm', paste0("model ", i))
+  dir.create(tmp.dir, showWarnings = FALSE, recursive = TRUE)
   setwd(tmp.dir)
   exportData(
     nRep = 100,
     model = path.Model,
     n = 2000,
     program = "Mplus",
-    fileStem = paste0("NNorm4TraitsModel", i, "Rep") ,
+    fileStem = paste0("4Traitsnnorm", i, "Rep") ,
     sequential = TRUE,
     facDist = facDist,
     seed = 2204
   )
-  cat('Monte Carlo data generated completed for model ', i, '.', sep = "")
+  cat('Monte Carlo data generated completed for model ', i, '.\n', sep = "")
 }
+setwd(wd)
 
 library(MplusAutomation)
 
@@ -63,16 +67,15 @@ library(MplusAutomation)
 tmp <- 
   '[[init]]
 iterators = model;
-model = 1:5;
-nnorm#model = 0.5 0.6 0.7 0.8 0.9;
-filename = "3Traits4Triplets nnorm [[nnorm#model]].inp";
-outputDirectory = Data/[[nnorm#model]];
+model = 1:6;
+filename = "3Traits4Triplets nnorm [[model]].inp";
+outputDirectory = "Data/nnorm/model [[model]]";
 [[/init]]
 
 
-TITLE: Model with 4 triplets measuring 3 traits with non-normal distrubution, skewness kurtosis of [[nnorm#model]]
+TITLE: Model with 4 triplets measuring 3 traits with non-normal distrubution, skewness kurtosis of [[model]]
 DATA:   !FILE IS 4TraitsRep5.dat;
-FILE IS 4Traitsnnorm[[nnorm#model]]Replist.dat; TYPE=MONTECARLO;
+FILE IS 4Traitsnnorm[[model]]Rep.dat; TYPE=MONTECARLO;
 
 VARIABLE:
 NAMES = trait1-trait4 e1-e12 se1-se12;
@@ -211,15 +214,15 @@ write(tmp, "nnormanatmplt.txt")
 createModels("nnormanatmplt.txt")
 
 # Run analysis----
-runModels(getwd(), recursive = TRUE, filefilter = "3Traits4Triplets high correlation \\d\\.\\d\\.inp")
+runModels(getwd(), recursive = TRUE, filefilter = "3Traits4Triplets nnorm \\d\\.inp")
 
 # Read output----
 allOutput <-
-  readModels(getwd(), recursive = TRUE, filefilter = "3traits4triplets high correlation \\d\\.\\d")
+  readModels(getwd(), recursive = TRUE, filefilter = "3Traits4Triplets nnorm \\d")
 
 # Compile output into a table in parameters----
 # Select only the needed fit indexes
-modelSum = data.frame(matrix(ncol = 12, nrow = 5))
+modelSum = data.frame(matrix(ncol = 12, nrow = length(cond)))
 names(modelSum) <- c(
   'Parameters',
   'ChiSqM_DF',
@@ -234,7 +237,7 @@ names(modelSum) <- c(
   'meanUniquenessBias',
   'meanThresholdsBias'
 )
-row.names(modelSum) <- paste0("Model", 1:5)
+row.names(modelSum) <- paste0("Model", 1:length(cond))
 modelParam <- list()
 tmpregex <- c(".*BY", ".*WITH", ".+Variances", "Thresholds")
 popThrshlds <-
