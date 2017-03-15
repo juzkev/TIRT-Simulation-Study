@@ -2,16 +2,10 @@
 ##
 ##  Author:       Kevin Koh
 ##  Description:  Runs simulation on high correlation
-##  Version:      1.0
-##  Todo:         Key in better high correlation structure to avoid non convergence/ non positively definate
 ##
 ##----------------------------------------------------------------------------------
 
 library(MplusAutomation)
-
-######################################
-## Study 1: High factor correlation ##
-######################################
 
 # Create Monte Carlo template----
 tmp <-
@@ -20,7 +14,7 @@ iterators = model;
 model = 1:7;
 corr#model = 0.3 0.4 0.5 0.6 0.7 0.8 0.9;
 filename = "Monte Carlo 4 traits SIMULATION high correlation [[corr#model]].inp";
-outputDirectory = Data/[[corr#model]];
+outputDirectory = Data/highcorr/[[corr#model]];
 [[/init]]
 
 TITLE: Generates 4 traits with high correlation of [[corr#model]]
@@ -61,7 +55,7 @@ iterators = model;
 model = 1:7;
 corr#model = 0.3 0.4 0.5 0.6 0.7 0.8 0.9;
 filename = "3Traits4Triplets high correlation [[corr#model]].inp";
-outputDirectory = Data/[[corr#model]];
+outputDirectory = Data/highcorr/[[corr#model]];
 [[/init]]
 
 
