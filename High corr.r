@@ -251,7 +251,7 @@ for (i in 1:(length(allOutput))) {
       mean(modelParam[[i]][with(modelParam[[i]], grepl(tmpregex[j], paramHeader)) , 'bias'])
   }
   modelSum[i, 'meanThresholdsBias'] <-
-    mean(abs(modelParam[[i]][with(modelParam[[i]], grepl("Thresholds", paramHeader)) , 'average'] - popThrshlds))
+    mean(abs(modelParam[[i]][with(modelParam[[i]], grepl("Thresholds", paramHeader)) , 'average'] - popThrshlds[i]))
   modelSum[i, 'ChiSqM_DFadj'] <-
     (modelSum[i, 'ChiSqM_DF'] - 4) # adjust for triplets redundencies r=n(n-1)(n-2)/6 = 1 per block
 }
