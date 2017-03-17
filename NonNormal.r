@@ -244,7 +244,7 @@ popThrshlds <-
   c(0.5,-1.2,-1.7, 0.7, 1, 0.3, -0.7, -1.2, -0.5, 0.7, 1.2, 0.5)
 
 # Loop through each model
-for (i in 1:(length(allOutput))) {
+for (i in 1:(length(cond))) {
   modelSum[i, names(modelSum)[1:8]] <-
     allOutput[[i]]$summaries[names(modelSum)[1:8]]
   modelParam[[i]] <-
