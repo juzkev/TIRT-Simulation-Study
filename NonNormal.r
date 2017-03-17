@@ -48,7 +48,7 @@ for (i in c(1:length(cond))) {
   dir.create(tmp.dir, showWarnings = FALSE, recursive = TRUE)
   setwd(tmp.dir)
   exportData(
-    nRep = 100,
+    nRep = 1000,
     model = path.Model,
     n = 2000,
     program = "Mplus",
@@ -67,7 +67,7 @@ library(MplusAutomation)
 tmp <- 
   '[[init]]
 iterators = model;
-model = 1:6;
+model = 1:5;
 filename = "3Traits4Triplets nnorm [[model]].inp";
 outputDirectory = "Data/nnorm/model [[model]]";
 [[/init]]
@@ -269,3 +269,4 @@ for (i in 1:(length(allOutput))) {
 
 # Plot visualisation, Idk what to visualise sia----
 (modelSum)
+write.csv(modelSum, file = "nnorm.csv")

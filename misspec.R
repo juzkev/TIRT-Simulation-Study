@@ -23,7 +23,7 @@ MONTECARLO:
 NAMES = trait1-trait4 e1-e12 se1-se12;
 
 NOBSERVATIONS = 2000;
-NREPS = 100; 
+NREPS = 1000; 
 SEED = 2204;
 REPSAVE=ALL;
 SAVE = 4Traitsmisspec[[model]]Rep*.dat;
@@ -261,3 +261,4 @@ for (i in 1:(length(allOutput))) {
 
 # Plot visualisation, Idk what to visualise sia----
 (modelSum)
+write.csv(modelSum, file = "Misspecification.csv")
