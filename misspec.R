@@ -214,7 +214,7 @@ allOutput <-
 
 # Compile output into a table in parameters----
 # Select only the needed fit indexes
-modelSum = data.frame(matrix(ncol = 12, nrow = 5))
+modelSum = data.frame(matrix(ncol = 16, nrow = 5))
 names(modelSum) <- c(
   'Parameters',
   'ChiSqM_DF',
@@ -225,15 +225,19 @@ names(modelSum) <- c(
   'RMSEA_SD',
   'RMSEA_NumComputations',
   'meanLoadingsRelativeBias',
+  'seLoadingsRelativeBias',
   'meanCorrelationsAbsoluteBias',
+  'seCorreleationsAbsoluteBias',
   'meanUniquenessRelativeBias',
-  'meanThresholdsRelativeBias'
+  'seUniquenessRelativeBias',
+  'meanThresholdsRelativeBias',
+  'seThresholdsRelativeBias'
 )
 row.names(modelSum) <- paste0("Model", 1:5)
 modelParam <- list()
 tmpregex <- c(".*BY", ".*WITH", ".+Variances", "Thresholds")
 popThrshlds <-
-  c(0.5,-1.2,-1.7, 0.7, 1, 0.3, -0.7, -1.2, -0.5, 0.7, 1.2, 0.5)
+  c(0.5, -1.2, -1.7, 0.7, 1, 0.3,-0.7,-1.2,-0.5, 0.7, 1.2, 0.5)
 
 # Loop through each model
 for (i in 1:(length(allOutput))) {
@@ -247,11 +251,15 @@ for (i in 1:(length(allOutput))) {
                                                'population_sd',
                                                'average_se')]
   # calculate relative bias for loadings and uniqueness
-  modelParam[[i]]$bias <-
+  modelParam[[i]]$parambias <-
     abs(modelParam[[i]]$average - modelParam[[i]]$population) / abs(modelParam[[i]]$population)
-  for (j in seq_along(names(modelSum)[9:12])) {
-    modelSum[i, names(modelSum)[j + 8]] <-
-      mean(modelParam[[i]][with(modelParam[[i]], grepl(tmpregex[j], paramHeader)) , 'bias'])
+  modelParam[[i]]$sebias <-
+    abs(modelParam[[i]]$average_se - modelParam[[i]]$population_sd) / abs(modelParam[[i]]$population_sd)
+  for (j in 1:4) {
+    modelSum[i, names(modelSum)[j*2 - 1 + 8]] <-
+      mean(modelParam[[i]][with(modelParam[[i]], grepl(tmpregex[j], paramHeader)) , 'parambias'])
+    modelSum[i, names(modelSum)[j*2 + 8]] <-
+      mean(modelParam[[i]][with(modelParam[[i]], grepl(tmpregex[j], paramHeader)) , 'sebias'])
   }
   # Population value for Thresholds not correctly specified in Mplus output, thus using manually defined threshold
   modelSum[i, 'meanThresholdsRelativeBias'] <-
@@ -259,8 +267,12 @@ for (i in 1:(length(allOutput))) {
   # calculate absolute bias for correlations, as some correlations are 0
   modelSum[i, 'meanCorrelationsAbsoluteBias'] <-
     mean(abs(modelParam[[i]][with(modelParam[[i]], grepl(".*WITH", paramHeader)) , 'average'] - modelParam[[i]][with(modelParam[[i]], grepl(".*WITH", paramHeader)) , 'population']))
+  # calculate absolute SE bias for correlations, as some correlations are 0
+  modelSum[i, 'seCorreleationsAbsoluteBias'] <-
+    mean(abs(modelParam[[i]][with(modelParam[[i]], grepl(".*WITH", paramHeader)) , 'average_se'] - modelParam[[i]][with(modelParam[[i]], grepl(".*WITH", paramHeader)) , 'population_sd']))
+  # adjust for triplets redundencies r=n(n-1)(n-2)/6 = 1 per block
   modelSum[i, 'ChiSqM_DFadj'] <-
-    (modelSum[i, 'ChiSqM_DF'] - 4) # adjust for triplets redundencies r=n(n-1)(n-2)/6 = 1 per block
+    (modelSum[i, 'ChiSqM_DF'] - 4) 
 }
 
 # Plot visualisation, Idk what to visualise sia----
