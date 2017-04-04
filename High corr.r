@@ -270,6 +270,9 @@ for (i in 1:(length(allOutput))) {
   # adjust for triplets redundencies r=n(n-1)(n-2)/6 = 1 per block
   modelSum[i, 'ChiSqM_DFadj'] <-
     (modelSum[i, 'ChiSqM_DF'] - 4) 
+  # calculate Chi-sq probablity based on new DF
+  modelSum[i, 'ChisqM_p'] <-
+    (pchisq(modelSum[i,'ChiSqM_Mean'],modelSum[i, 'ChiSqM_DFadj'],lower.tail = FALSE)*2)
 }
 
 # Plot visualisation, Idk what to visualise sia----
